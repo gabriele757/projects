@@ -1,0 +1,87 @@
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import warnings
+from sklearn.exceptions import ConvergenceWarning
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+
+def print_conf_matrix(conf_matrix):
+    print(f"""
+Confusion Matrix:
+{conf_matrix}
+
+TN True Negative:  [{conf_matrix[0][0]}] | FP False Positive: [{conf_matrix[0][1]}]
+FN False Negative: [{conf_matrix[1][0]}] | TP True Positive:  [{conf_matrix[1][1]}]
+""")
+    
+def evaluate_model(X_train, X_test, y_train, y_test, model, description, uzd=False):
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(description)
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+    if uzd == 1:
+        print("\nClassification Report:\n", classification_report(y_test, y_pred, zero_division=0, target_names=['Gerybinis', 'Piktybinis']), "\n")
+    else:
+        print("\nClassification Report:\n", classification_report(y_test, y_pred, zero_division=0), "\n")
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    print_conf_matrix(conf_matrix)
+    print('='*50 + '\n')
+
+def predict_cancer(x):
+    warnings.filterwarnings("ignore", message="X does not have valid feature names")
+    prediction = model.predict([x])
+    result = 'Piktybinis' if prediction[0] == 1 else 'Gerybinis'
+    print(result); return result
+
+
+
+import pandas as pd
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_curve
+import matplotlib.pyplot as plt
+
+
+
+data = pd.read_csv("transfusion.data")
+data.columns = ["Recency", "Frequency", "Monetary", "Time", "Target"]
+
+X = data.drop("Target", axis=1)
+y = data["Target"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+
+scaler = StandardScaler() 
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+poly = PolynomialFeatures(degree=2)
+X_train_poly = poly.fit_transform(X_train)
+X_test_poly = poly.transform(X_test)
+
+model = LogisticRegression(max_iter=int(1e10))
+
+# NoPoly:
+model.fit(X_train, y_train)
+evaluate_model(X_train, X_test, y_train, y_test, model, "No PolynomialFeatures: ")
+
+# Poly:
+model.fit(X_train_poly, y_train)
+evaluate_model(X_train_poly, X_test_poly, y_train, y_test, model, "With PolynomialFeatures: ")
+
+# ROC NoPoly
+model.fit(X_train, y_train)
+fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+plt.plot(fpr, tpr, label="No PolynomialFeatures")
+plt.plot([0, 1], [0, 1], '--')
+
+# ROC Poly
+model.fit(X_train_poly, y_train)
+fpr_p, tpr_p, _ = roc_curve(y_test, model.predict_proba(X_test_poly)[:, 1])
+plt.plot(fpr_p, tpr_p, label="With PolynomialFeatures")
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.show()

@@ -1,0 +1,5 @@
+Spinta 600.0 15 
+Kede 80.0 100 
+Sofa 900.0 40 
+Fotelis 720.0 80 
+Spintele 250.0 40 

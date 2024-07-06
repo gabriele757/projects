@@ -1,0 +1,1 @@
+https://www.youtube.com/watch?v=QzY57FaENXg&ab_channel=IBMTechnology https://www.youtube.com/watch?v=HGwBXDKFk9I&ab_channel=StatQuestwithJoshStarmer https://www.youtube.com/watch?v=KuXjwB4LzSA&ab_channel=3Blue1Brown
